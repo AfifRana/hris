@@ -51,7 +51,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include Routers under /api/v1 (spec base path)
+# Keep unversioned routes available for existing clients and expose the
+# versioned API for clients that need an explicit contract version.
+app.include_router(chat_router)
+app.include_router(documents_router)
+app.include_router(onboarding_router)
+app.include_router(tasks_router)
 app.include_router(chat_router, prefix="/api/v1")
 app.include_router(documents_router, prefix="/api/v1")
 app.include_router(onboarding_router, prefix="/api/v1")
@@ -86,4 +91,3 @@ async def health_check():
             and settings.gcp_project_id != "your-gcp-project-id"
         ),
     }
-

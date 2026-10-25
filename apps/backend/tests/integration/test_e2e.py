@@ -84,6 +84,13 @@ async def e2e(tmp_path):
     )
     retrieval = RetrievalService(firestore_repo=firestore, embedding_service=embeddings)
     onboarding = OnboardingService(firestore_repo=firestore)
+    await onboarding.create_profile(
+        user_id="user_001",
+        name="Aji",
+        role="Backend Engineer",
+        department="Engineering",
+        location="Jakarta",
+    )
     vertex = StubGemini()
     _wire(settings, firestore, storage, embeddings, processor, retrieval, onboarding, vertex)
 

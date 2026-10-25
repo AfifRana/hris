@@ -18,6 +18,10 @@ from app.repositories.firestore import FirestoreRepository, get_firestore_reposi
 from app.repositories.storage import StorageRepository, get_storage_repository
 from app.services.document_processor import DocumentProcessor, get_document_processor
 from app.services.embeddings import EmbeddingService
+from app.services.onboarding import (
+    OnboardingService,
+    get_onboarding_service,
+)
 from app.services.retrieval import RetrievalService
 from app.services.router import ScopeRouter
 from tests.conftest import make_test_pdf
@@ -96,10 +100,19 @@ async def test_rejected_version_is_not_retrievable(isolated_repos):
 @pytest.mark.asyncio
 async def test_cross_user_task_access_is_forbidden(isolated_repos):
     _settings, firestore_repo, storage_repo, embedding_service, processor = isolated_repos
+    onboarding = OnboardingService(firestore_repo=firestore_repo)
+    await onboarding.create_profile(
+        user_id="user_001",
+        name="Aji",
+        role="Backend Engineer",
+        department="Engineering",
+        location="Jakarta",
+    )
 
     app.dependency_overrides[get_firestore_repository] = lambda: firestore_repo
     app.dependency_overrides[get_storage_repository] = lambda: storage_repo
     app.dependency_overrides[get_document_processor] = lambda: processor
+    app.dependency_overrides[get_onboarding_service] = lambda: onboarding
     try:
         async with httpx.AsyncClient(
             transport=httpx.ASGITransport(app=app), base_url="http://test"

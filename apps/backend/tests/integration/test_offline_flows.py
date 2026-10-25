@@ -8,6 +8,7 @@ deterministic extractive answer path.
 
 import httpx
 import pytest
+import pytest_asyncio
 
 from app.core.config import Settings
 from app.main import app
@@ -37,8 +38,8 @@ class OfflineVertex:
         yield ""  # pragma: no cover
 
 
-@pytest.fixture
-def api(tmp_path):
+@pytest_asyncio.fixture
+async def api(tmp_path):
     """Isolated app with in-memory Firestore and local-disk storage."""
     settings = Settings(local_storage_dir=str(tmp_path / "storage"))
     firestore = FirestoreRepository(settings=settings)
@@ -52,6 +53,13 @@ def api(tmp_path):
     )
     retrieval = RetrievalService(firestore_repo=firestore, embedding_service=embeddings)
     onboarding = OnboardingService(firestore_repo=firestore)
+    await onboarding.create_profile(
+        user_id="user_001",
+        name="Aji",
+        role="Backend Engineer",
+        department="Engineering",
+        location="Jakarta",
+    )
     vertex = OfflineVertex()
     rag = RAGEngine(retrieval_service=retrieval, vertex_service=vertex, settings=settings)
 

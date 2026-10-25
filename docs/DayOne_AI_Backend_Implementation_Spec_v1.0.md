@@ -652,48 +652,30 @@ The original PDF remains the source of truth for audit, reprocessing, and verifi
 # 8. Folder Structure
 
 ```text
-backend/
-├── app/
-│   ├── main.py
-│   │
-│   ├── api/
-│   │   ├── chat.py
-│   │   ├── documents.py
-│   │   ├── onboarding.py
-│   │   └── tasks.py
-│   │
-│   ├── services/
-│   │   ├── gemini.py
-│   │   ├── embeddings.py
-│   │   ├── retrieval.py
-│   │   ├── document_processor.py
-│   │   ├── router.py
-│   │   ├── onboarding.py
-│   │   └── evaluation.py
-│   │
-│   ├── repositories/
-│   │   ├── firestore.py
-│   │   └── storage.py
-│   │
-│   ├── models/
-│   │   ├── chat.py
-│   │   ├── document.py
-│   │   ├── onboarding.py
-│   │   └── task.py
-│   │
-│   └── core/
-│       ├── config.py
-│       ├── security.py
-│       └── errors.py
-│
-├── tests/
-│   ├── unit/
-│   ├── integration/
-│   └── evaluation/
-│
-├── Dockerfile
-├── requirements.txt
+hris/
+├── apps/
+│   ├── backend/
+│   │   ├── app/
+│   │   │   ├── api/
+│   │   │   ├── core/
+│   │   │   ├── models/
+│   │   │   ├── repositories/
+│   │   │   ├── routers/
+│   │   │   ├── schemas/
+│   │   │   ├── services/
+│   │   │   ├── config.py
+│   │   │   └── main.py
+│   │   ├── tests/
+│   │   │   ├── unit/
+│   │   │   ├── integration/
+│   │   │   └── evaluation/
+│   │   ├── Dockerfile
+│   │   └── requirements.txt
+│   └── frontend/
+├── docs/
+│   └── DayOne_AI_Backend_Implementation_Spec_v1.0.md
 ├── .env.example
+├── .gitignore
 └── README.md
 ```
 

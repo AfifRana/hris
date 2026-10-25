@@ -81,50 +81,17 @@ flowchart TD
 
 ```text
 hris/
-├── app/
-│   ├── main.py                     # FastAPI app, CORS, routers, /health
-│   ├── config.py                   # Compatibility shim -> app/core/config.py
-│   ├── api/
-│   │   ├── chat.py                 # /chat (intent routing + RAG)
-│   │   ├── documents.py            # /documents, /versions/{id}/process|publish|reject
-│   │   ├── onboarding.py           # /profile, /onboarding/progress
-│   │   └── tasks.py                # /tasks, /tasks/{id}/complete
-│   ├── core/
-│   │   ├── config.py               # Pydantic Settings
-│   │   ├── security.py             # UserContext, get_current_user, require_hr_admin
-│   │   └── errors.py               # Structured AppException hierarchy
-│   ├── models/
-│   │   ├── chat.py                 # ChatRequestV1 / ChatResponseV1 / Citation / IntentType
-│   │   ├── document.py             # Document, versions, chunks, evaluation questions, audit logs
-│   │   ├── onboarding.py           # UserProfile, OnboardingTask, progress
-│   │   └── task.py                 # Re-exports task models (spec §8 layout)
-│   ├── repositories/
-│   │   ├── firestore.py            # Firestore + in-memory fallback
-│   │   └── storage.py              # Cloud Storage + local fallback
-│   └── services/
-│       ├── gemini.py               # RAG engine (retrieval -> context -> Gemini)
-│       ├── embeddings.py           # Vertex embeddings + deterministic offline fallback
-│       ├── retrieval.py            # Vector search + context/citation building
-│       ├── document_processor.py   # Ingestion pipeline
-│       ├── router.py               # Scope & intent routing
-│       ├── onboarding.py           # Profile, tasks, progress
-│       ├── evaluation.py           # Retrieval evaluation (Hit@K) + citation validation
-│       └── vertex_service.py       # Low-level Vertex Gemini client
-├── tests/
-│   ├── conftest.py                 # Shared fixtures + in-memory PDF builder
-│   ├── unit/
-│   │   └── test_document_processor.py
-│   ├── integration/
-│   │   ├── test_chat.py
-│   │   ├── test_documents_api.py
-│   │   ├── test_security.py
-│   │   ├── test_offline_flows.py   # Offline flow coverage
-│   │   └── test_e2e.py             # Full journey (LLM + cloud stubbed)
-│   └── evaluation/
-│       └── test_evaluation.py
-├── Dockerfile
-├── requirements.txt
+├── apps/
+│   ├── backend/
+│   │   ├── app/                    # FastAPI application and services
+│   │   ├── tests/                  # Unit, integration, and evaluation tests
+│   │   ├── Dockerfile
+│   │   └── requirements.txt
+│   └── frontend/                  # Frontend application
+├── docs/
+│   └── DayOne_AI_Backend_Implementation_Spec_v1.0.md
 ├── .env.example
+├── .gitignore
 └── README.md
 ```
 
@@ -143,7 +110,7 @@ hris/
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe -m pip install -r apps\backend\requirements.txt
 ```
 
 ### Configure
@@ -170,7 +137,8 @@ or set `GOOGLE_APPLICATION_CREDENTIALS` to a service account key with the
 ## Running Locally
 
 ```powershell
-.\.venv\Scripts\uvicorn app.main:app --reload --port 8000
+$env:PYTHONPATH = "apps\backend"
+.\.venv\Scripts\python.exe -m uvicorn app.main:app --reload --port 8000
 ```
 
 - Base URL: `http://127.0.0.1:8000`
@@ -299,23 +267,24 @@ and flagged for escalation.
 ## Testing
 
 ```powershell
+$env:PYTHONPATH = "apps\backend"
 .\.venv\Scripts\python.exe -m pytest -q
 ```
 
 Tests are grouped as:
 
-- `tests/unit/` — pure logic and single services.
-- `tests/integration/` — the FastAPI stack with **cloud and AI stubbed**
+- `apps/backend/tests/unit/` — pure logic and single services.
+- `apps/backend/tests/integration/` — the FastAPI stack with **cloud and AI stubbed**
   (in-memory Firestore, local-disk storage, offline embeddings, stub LLM).
-- `tests/evaluation/` — retrieval `Hit@5 >= 80%` and citation validation.
+- `apps/backend/tests/evaluation/` — retrieval `Hit@5 >= 80%` and citation validation.
 
 The suite covers chat routing (including general onboarding), document
 ingestion, the document API lifecycle (REVIEW-gated publish, supersede),
 duplicate detection, evaluation-question persistence and cross-version
 regression, and security boundaries (unpublished/rejected content is never
 retrievable, cross-user task access is forbidden, sensitive requests are
-escalated). `tests/integration/test_e2e.py` runs the full HR→employee journey
-end-to-end with no Google Cloud or AI calls.
+escalated). `apps/backend/tests/integration/test_e2e.py` runs the full
+HR→employee journey end-to-end with no Google Cloud or AI calls.
 
 ---
 
@@ -323,7 +292,7 @@ end-to-end with no Google Cloud or AI calls.
 
 ```bash
 # Build and push the container
-gcloud builds submit --tag gcr.io/$GCP_PROJECT_ID/dayone-ai
+gcloud builds submit --tag gcr.io/$GCP_PROJECT_ID/dayone-ai apps/backend
 
 # Deploy
 gcloud run deploy dayone-ai \
