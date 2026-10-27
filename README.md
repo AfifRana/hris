@@ -149,6 +149,18 @@ $env:PYTHONPATH = "apps\backend"
 All endpoints are served under **both** the root path and `/api/v1`
 (e.g. `/chat` and `/api/v1/chat`).
 
+### Frontend and demo profiles
+
+The Next.js app in `apps/frontend` (see its [README](apps/frontend/README.md)) uses demo users
+`user_001` and `user_002`. Create their profiles once, or tasks/progress/chat return 404:
+
+```bash
+curl -X POST http://127.0.0.1:8000/profile -H "Content-Type: application/json" -H "X-User-Id: user_001" \
+  -d '{"name":"Naufal","role":"Backend Engineer","department":"Engineering","location":"Jakarta"}'
+curl -X POST http://127.0.0.1:8000/profile -H "Content-Type: application/json" -H "X-User-Id: user_002" \
+  -d '{"name":"Afif","role":"Product Designer","department":"Design","location":"Jakarta"}'
+```
+
 ---
 
 ## API Reference
